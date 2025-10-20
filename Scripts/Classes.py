@@ -37,10 +37,88 @@ class Lesson:
         r = requests.get(url="https://changjiang.yuketang.cn/api/v3/lesson/presentation/fetch?presentation_id=%s" % (presentationid),headers=self.headers,proxies={"http": None,"https":None})
         return dict_result(r.text)["data"]
 
-    def get_problems(self,presentationid):
+    def get_problems(self, presentationid):
         # 获取课程ppt中的题目
-        data = self._get_ppt(presentationid)
-        return [problem["problem"] for problem in data["slides"] if "problem" in problem.keys()]
+        try:
+            data = self._get_ppt(presentationid)
+            problems = []
+
+            # 使用QT消息系统
+            self.add_message(f"{self.lessonname} 开始获取PPT {presentationid} 中的题目", 2)
+
+            if "slides" not in data:
+                self.add_message(f"{self.lessonname} 未找到slides数据", 4)
+                return problems
+
+            total_slides = len(data["slides"])
+            self.add_message(f"{self.lessonname} 总共 {total_slides} 页PPT", 2)
+
+            problem_count = 0
+
+            for index, slide in enumerate(data["slides"]):
+                try:
+                    if "problem" in slide.keys():
+                        problem = slide["problem"]
+                        problems.append(problem)
+                        problem_count += 1
+
+                        # 构建题目信息消息
+                        problem_id = problem.get('problemId', '未知')
+                        problem_type = self._get_problem_type(problem.get('problemType', 0))
+
+                        # 安全地获取题目内容
+                        content = problem.get('content', '')
+                        if content:
+                            # 限制内容长度，避免过长
+                            content_preview = content[:50] + "..." if len(content) > 50 else content
+                            message = f"{self.lessonname} 第{index + 1}页 - {problem_type} (ID:{problem_id}): {content_preview}"
+                        else:
+                            message = f"{self.lessonname} 第{index + 1}页 - {problem_type} (ID:{problem_id})"
+
+                        self.add_message(message, 2)
+
+                        # 如果有选项信息也显示
+                        try:
+                            if "blanks" in problem and problem["blanks"]:
+                                blank_info = f"{self.lessonname} 第{index + 1}页 - 填空题，共{len(problem['blanks'])}个空"
+                                self.add_message(blank_info, 2)
+
+                            if "answers" in problem and problem["answers"]:
+                                options = problem['answers']
+                                if options and len(options) <= 6:  # 避免选项太多
+                                    options_info = f"{self.lessonname} 第{index + 1}页 - 选项: {', '.join(map(str, options))}"
+                                    self.add_message(options_info, 2)
+                        except Exception as e:
+                            self.add_message(f"{self.lessonname} 解析题目选项时出错: {e}", 3)
+
+                except Exception as e:
+                    error_msg = f"{self.lessonname} 处理第{index + 1}页题目时出错: {e}"
+                    self.add_message(error_msg, 4)
+                    continue  # 跳过有问题的题目，继续处理下一个
+
+            summary_msg = f"{self.lessonname} 在PPT中共找到 {problem_count} 个题目"
+            self.add_message(summary_msg, 2)
+
+            return problems
+
+        except Exception as e:
+            error_msg = f"{self.lessonname} 获取PPT题目时发生错误: {e}"
+            self.add_message(error_msg, 4)
+            return []
+
+    def _get_problem_type(self, type_id):
+        """将题目类型ID转换为可读文本"""
+        type_map = {
+            0: "未知类型",
+            1: "单选题",
+            2: "多选题",
+            3: "填空题",
+            4: "主观题",
+            5: "投票题",
+            6: "判断题"
+        }
+        return type_map.get(type_id, f"未知类型({type_id})")
+
 
     def answer_questions(self,problemid,problemtype,answer,limit):
         # 回答问题
