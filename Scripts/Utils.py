@@ -107,7 +107,7 @@ def get_user_info(sessionid):
         "Cookie":"sessionid=%s" % sessionid,
         "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
     }
-    r = requests.get(url="https://www.yuketang.cn/api/v3/user/basic-info",headers=headers,proxies={"http": None,"https":None})
+    r = requests.get(url="https://changjiang.yuketang.cn/api/v3/user/basic-info",headers=headers,proxies={"http": None,"https":None})
     rtn = dict_result(r.text)
     return (rtn["code"],rtn["data"])
 
@@ -117,7 +117,7 @@ def get_on_lesson(sessionid):
         "Cookie":"sessionid=%s" % sessionid,
         "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
     }
-    r = requests.get("https://www.yuketang.cn/api/v3/classroom/on-lesson",headers=headers,proxies={"http": None,"https":None})
+    r = requests.get("https://changjiang.yuketang.cn/api/v3/classroom/on-lesson",headers=headers,proxies={"http": None,"https":None})
     rtn = dict_result(r.text)
     return rtn["data"]["onLessonClassrooms"]
 

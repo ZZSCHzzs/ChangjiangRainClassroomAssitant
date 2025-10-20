@@ -140,7 +140,7 @@ class Login_Ui(object):
                 self.QRcode.setPixmap(img_pixmap)
             # 扫码且登录成功
             elif data["op"] == "loginsuccess":
-                web_login_url = "https://www.yuketang.cn/pc/web_login"
+                web_login_url = "https://changjiang.yuketang.cn/pc/web_login"
                 login_data = {
                     "UserID":data["UserID"],
                     "Auth":data["Auth"]
@@ -156,7 +156,7 @@ class Login_Ui(object):
                 config["sessionid"] = sessionid
                 self.save(sessionid)
                 Dialog.accept()
-        login_wss_url = "wss://www.yuketang.cn/wsapp/"
+        login_wss_url = "wss://changjiang.yuketang.cn/wsapp/"
         # 开启websocket线程和定时刷新二维码线程
         self.wsapp = websocket.WebSocketApp(url=login_wss_url,on_open=on_open,on_message=on_message,on_close=on_close)
         self.wsapp_t = threading.Thread(target=self.wsapp.run_forever,daemon=True)
