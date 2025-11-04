@@ -86,7 +86,8 @@ def get_initial_data():
                     "time":0
                 }
             }
-        }
+        },
+        "debug_mode":False
     }
     return initial_data
 
